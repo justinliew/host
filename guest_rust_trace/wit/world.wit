@@ -1,0 +1,30 @@
+package fastly:varnish;
+
+interface types {
+    resource req-resource {
+        get-header-names: func() -> list<list<u8>>;
+        get: func(header: string) -> option<list<list<u8>>>;  
+        get-service-id: func() -> string;
+    }
+}
+
+// this is the interface the guest needs
+interface trace-hooks {
+    enter: func();
+}
+
+interface queue {
+    use types.{req-resource};
+    try-pop: func(timeout-secs: u64) -> bool;
+}
+
+// this is a host call the guest can make to log
+interface trace-log {
+    log: func(msg: string, endpoint: string, sid: string);
+}
+
+world trace {
+    import trace-log;
+    import queue;
+    export trace-hooks;
+}
